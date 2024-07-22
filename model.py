@@ -2,7 +2,14 @@ from tensorflow.keras.layers import (
     Input, Conv1D, MaxPooling1D, Dropout, BatchNormalization, Activation, Add, Flatten, Dense)
 from tensorflow.keras.models import Model
 import numpy as np
+import torch 
+import torch.nn as nn
 
+class ECGModel(nn.Module):
+    def __init__(self, input_size, num_classes):
+        super(ECGModel, self).__init__()
+        self.layer1 = nn.Linear(input_size, 128)
+        self.layer2 = nn.Linear(128, num_classes)
 
 class ResidualUnit(object):
     """Residual unit block (unidimensional).
@@ -133,6 +140,14 @@ def get_model(n_classes, last_layer='sigmoid'):
     diagn = Dense(n_classes, activation=last_layer, kernel_initializer=kernel_initializer)(x)
     model = Model(signal, diagn)
     return model
+    def forward(self, x):
+        x = torch.relu(self.layer1(x))
+        x = self.layer2(x)
+        return x
+
+num_classes = 5  
+model = ECGModel(input_size=187, num_classes=num_classes)
+
 
 
 if __name__ == "__main__":
