@@ -4,6 +4,40 @@ from tensorflow.keras.callbacks import (ModelCheckpoint, TensorBoard, ReduceLROn
 from model import get_model
 import argparse
 from datasets import ECGSequence
+import torch 
+import torch.nn as nn 
+import torch.optim as optim 
+from torch.utils.data import DataLoader, TensorDataset
+from data_loader import load_mitbih_data
+from model import ECGModel
+data_dir = 'path_to_mitbih_data'
+data, labels = load_mitbih_data(data_dir)
+data_tensor = torch.tensor(data, dtype=torch.float32)
+labels_tensor = torch.tensor(labels, dtype=torch.long)
+
+dataset = TensorDataset(data_tensor, labels_tensor)
+dataloader = DataLoader(dataset, batch_size=64, shuffle=True)
+num_classes = 5  # Adjust based on MIT-BIH dataset
+model = ECGModel(input_size=data.shape[1], num_classes=num_classes)
+
+
+criterion = nn.CrossEntropyLoss()
+optimizer = optim.Adam(model.parameters(), lr=0.001)
+
+for epoch in range(10):  
+    for inputs, targets in dataloader:
+        optimizer.zero_grad()
+        outputs = model(inputs)
+        loss = criterion(outputs, targets)
+        loss.backward()
+        optimizer.step()
+
+    print(f'Epoch {epoch+1}, Loss: {loss.item()}')
+
+
+
+
+
 
 if __name__ == "__main__":
     # Get data and train
